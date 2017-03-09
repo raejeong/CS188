@@ -40,6 +40,7 @@ from game import Actions
 import util
 import time
 import search
+import pdb
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -294,14 +295,21 @@ class CornersProblem(search.SearchProblem):
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        "*** YOUR CODE HERE ***"
+        startState = self.startingPosition + ([0,0,0,0],)
+        for cnrI, cnr in enumerate(self.corners):
+            if (startState[0], startState[1]) == cnr:
+                startState[2][cnrI] = 1
+        return startState
         util.raiseNotDefined()
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        "*** YOUR CODE HERE ***"
+        if 0 in state[2]:
+            return False
+        else:
+            return True
         util.raiseNotDefined()
 
     def getSuccessors(self, state):
@@ -314,7 +322,10 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-
+        x, y , cornerState = (state[0], state[1], state[2][:])
+        for cnrI, cnr in enumerate(self.corners):
+                if (x, y) == cnr:
+                    cornerState[cnrI] = 1
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -323,9 +334,13 @@ class CornersProblem(search.SearchProblem):
             #   dx, dy = Actions.directionToVector(action)
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
-
-            "*** YOUR CODE HERE ***"
-
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
+            if not hitsWall:
+                successor = ((nextx, nexty, cornerState), action, 1)
+                successors.append(successor)
+            
         self._expanded += 1 # DO NOT CHANGE
         return successors
 
