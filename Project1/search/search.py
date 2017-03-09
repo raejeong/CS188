@@ -96,9 +96,7 @@ def depthFirstSearch(problem):
     while True:
         if fringeStack.isEmpty():
             return ['']
-        
         curNode = fringeStack.pop()
-
         if problem.isGoalState(curNode[0]):
             return curNode[1]
         
@@ -109,19 +107,60 @@ def depthFirstSearch(problem):
                 childNodePath = curNode[1] + [childNode[1]]
                 childNodePathCost = curNode[2] + childNode[2]
                 fringeStack.push([childNodeState, childNodePath, childNodePathCost])
-
-    
-
     util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
+
+    closed = []
+    fringeQueue = util.Queue()
+    curNode = [problem.getStartState(),[],0]
+    fringeQueue.push(curNode)
+
+    while True:
+        if fringeQueue.isEmpty():
+            return ['']
+        
+        curNode = fringeQueue.pop()
+
+        if problem.isGoalState(curNode[0]):
+            return curNode[1]
+        
+        if curNode[0] not in closed:
+            closed.append(curNode[0])
+            for childNode in problem.getSuccessors(curNode[0]):
+                childNodeState = childNode[0]
+                childNodePath = curNode[1] + [childNode[1]]
+                childNodePathCost = curNode[2] + childNode[2]
+                fringeQueue.push([childNodeState, childNodePath, childNodePathCost])
+
     util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
+    
+    closed = []
+    fringeQueue = util.PriorityQueue()
+    curNode = [problem.getStartState(),[],0]
+    fringeQueue.update(curNode,curNode[2])
+
+    while True:
+        if fringeQueue.isEmpty():
+            return ['']
+        
+        curNode = fringeQueue.pop()
+
+        if problem.isGoalState(curNode[0]):
+            return curNode[1]
+        
+        if curNode[0] not in closed:
+            closed.append(curNode[0])
+            for childNode in problem.getSuccessors(curNode[0]):
+                childNodeState = childNode[0]
+                childNodePath = curNode[1] + [childNode[1]]
+                childNodePathCost = curNode[2] + childNode[2]
+                fringeQueue.update([childNodeState, childNodePath, childNodePathCost],childNodePathCost)
+
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -133,7 +172,28 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
+    closed = []
+    fringeQueue = util.PriorityQueue()
+    curNode = [problem.getStartState(),[],0]
+    fringeQueue.update(curNode,(curNode[2] + heuristic(curNode[0],problem)))
+
+    while True:
+        if fringeQueue.isEmpty():
+            return ['']
+        
+        curNode = fringeQueue.pop()
+
+        if problem.isGoalState(curNode[0]):
+            return curNode[1]
+        
+        if curNode[0] not in closed:
+            closed.append(curNode[0])
+            for childNode in problem.getSuccessors(curNode[0]):
+                childNodeState = childNode[0]
+                childNodePath = curNode[1] + [childNode[1]]
+                childNodePathCost = curNode[2] + childNode[2]
+                fringeQueue.update([childNodeState, childNodePath, childNodePathCost],childNodePathCost + heuristic(childNode[0],problem))
+
     util.raiseNotDefined()
 
 
