@@ -41,6 +41,7 @@ import util
 import time
 import search
 import pdb
+import math
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -450,6 +451,9 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
+def getDiffXY(position1, position2):
+    return (abs(position2[0]-position1[0]), abs(position2[1]-position1[1]))
+
 def foodHeuristic(state, problem):
     """
     Your heuristic for the FoodSearchProblem goes here.
@@ -487,7 +491,13 @@ def foodHeuristic(state, problem):
     for foodPosition in foodGrid.asList():
         foodDistances.append(getManhattanDistance(position, foodPosition))
 
-    foodDistanceHeuristic = min(foodDistances) + len(foodGrid.asList()) - 1
+    foodNum = len(foodGrid.asList())
+
+    maxFoodDiff = getManhattanDistance(foodGrid.asList()[0],foodGrid.asList()[-1])
+    farFoodDistances = []
+    farFoodDistances.append(getManhattanDistance(foodGrid.asList()[-1],position))
+    farFoodDistances.append(getManhattanDistance(foodGrid.asList()[0],position))
+    foodDistanceHeuristic = maxFoodDiff + min(farFoodDistances)
 
     #foodDistanceHeuristic = 0
 
