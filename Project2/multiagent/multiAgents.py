@@ -205,12 +205,87 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Your minimax agent with alpha-beta pruning (question 3)
     """
+    def isTerminalState(self,gameState,plyDepth):
+        return (plyDepth == 0 or gameState.isWin() or gameState.isLose())
+
+    def maxValue(self,gameState,plyDepth,singlePlyDepth,alpha,beta):
+        plyDepth -= 1
+        singlePlyDepth = 1
+        if self.isTerminalState(gameState,plyDepth):
+          return self.evaluationFunction(gameState)
+
+        legalActions = gameState.getLegalActions(0)
+
+        valueActionList = []
+
+        for indexAction in legalActions:
+          indexGameState = gameState.generateSuccessor(0,indexAction)
+          v = self.minValue(indexGameState, plyDepth, singlePlyDepth, alpha, beta)
+          valueActionList.append(v)
+          if v > beta:
+            return max(valueActionList)
+          alpha = max(alpha,v)
+
+        return max(valueActionList)
+
+    def minValue(self,gameState,plyDepth,singlePlyDepth,alpha,beta):
+        if self.isTerminalState(gameState,plyDepth):
+          return self.evaluationFunction(gameState)
+
+        legalActions = gameState.getLegalActions(singlePlyDepth)
+
+        valueActionList = []
+
+        if singlePlyDepth == gameState.getNumAgents()-1 :
+
+          for indexAction in legalActions:
+            indexGameState = gameState.generateSuccessor(singlePlyDepth,indexAction)
+            v = self.maxValue(indexGameState, plyDepth, singlePlyDepth, alpha, beta)
+            valueActionList.append(v)
+            if v < alpha:
+              return min(valueActionList)
+            beta = min(beta,v)
+        else:
+
+          for indexAction in legalActions:
+            indexGameState = gameState.generateSuccessor(singlePlyDepth,indexAction)
+            v = self.minValue(indexGameState, plyDepth, singlePlyDepth+1, alpha, beta)
+            valueActionList.append(v)
+            if v < alpha:
+              return min(valueActionList)
+            beta = min(beta,v)
+
+        return min(valueActionList)
 
     def getAction(self, gameState):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
+        #pdb.set_trace()
+        
+        legalActions = gameState.getLegalActions(0)
+
+        plyDepth = self.depth
+        singlePlyDepth = 1
+
+        alpha = -9999999
+        beta = 9999999
+        valueActionList = []
+
+        for indexAction in legalActions:
+          indexGameState = gameState.generateSuccessor(0,indexAction)
+          v = self.minValue(indexGameState, plyDepth, singlePlyDepth, alpha, beta)
+          valueActionList.append(v)
+          if v > beta:
+            break
+          alpha = max(alpha,v)
+
+        correctActionIndex = valueActionList.index(max(valueActionList))
+
+        correctAction = legalActions[correctActionIndex]
+
+        return correctAction
+
         util.raiseNotDefined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
