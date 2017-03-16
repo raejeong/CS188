@@ -292,6 +292,35 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
     """
+    def isTerminalState(self,gameState,plyDepth):
+        return (plyDepth == 0 or gameState.isWin() or gameState.isLose())
+
+    def maxValue(self,gameState,plyDepth,singlePlyDepth):
+        plyDepth -= 1
+        singlePlyDepth = 1
+        if self.isTerminalState(gameState,plyDepth):
+          return self.evaluationFunction(gameState)
+
+        legalActions = gameState.getLegalActions(0)
+        successorStates = [gameState.generateSuccessor(0,indexAction) for indexAction in legalActions]
+
+        valueActionList = [self.minValue(indexGameState, plyDepth, singlePlyDepth) for indexGameState in successorStates]
+
+        return max(valueActionList)
+
+    def minValue(self,gameState,plyDepth,singlePlyDepth):
+        if self.isTerminalState(gameState,plyDepth):
+          return self.evaluationFunction(gameState)
+
+        legalActions = gameState.getLegalActions(singlePlyDepth)
+        successorStates = [gameState.generateSuccessor(singlePlyDepth,indexAction) for indexAction in legalActions]
+
+        if singlePlyDepth == gameState.getNumAgents()-1 :
+          valueActionList = [self.maxValue(indexGameState, plyDepth, singlePlyDepth) for indexGameState in successorStates]
+        else:
+          valueActionList = [self.minValue(indexGameState, plyDepth, singlePlyDepth+1) for indexGameState in successorStates]
+
+        return sum(valueActionList)/float(len(valueActionList))
 
     def getAction(self, gameState):
         """
@@ -300,7 +329,22 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        "*** YOUR CODE HERE ***"
+        #pdb.set_trace()
+        
+        legalActions = gameState.getLegalActions(0)
+        successorStates = [gameState.generateSuccessor(0,indexAction) for indexAction in legalActions]
+
+        plyDepth = self.depth
+        singlePlyDepth = 1
+
+        valueActionList = [self.minValue(indexGameState,plyDepth,singlePlyDepth) for indexGameState in successorStates]
+
+        correctActionIndex = valueActionList.index(max(valueActionList))
+
+        correctAction = legalActions[correctActionIndex]
+
+        return correctAction
+
         util.raiseNotDefined()
 
 def betterEvaluationFunction(currentGameState):
@@ -310,7 +354,34 @@ def betterEvaluationFunction(currentGameState):
 
       DESCRIPTION: <write something here so we know what you did>
     """
-    "*** YOUR CODE HERE ***"
+    #pdb.set_trace()
+    moved = currentGameState.data._agentMoved
+    foodList = currentGameState.data.food.asList()
+    capsuleList = currentGameState.data.capsules
+    pacmanPostion = currentGameState.getPacmanPosition()
+    ghostPositions = currentGameState.getGhostPositions()
+
+    closetFoodDistance = 999999
+    closetCapsuleDistance = 9999999
+    closetGhostDistance = 9999999
+    
+    for indexFood in foodList:
+      closetFoodDistance = float(min(closetFoodDistance, manhattanDistance(pacmanPostion,indexFood)))+1
+
+    for indexCapsule in capsuleList:
+      closetCapsuleDistance = float(min(closetCapsuleDistance, manhattanDistance(pacmanPostion,indexCapsule)))+1  
+
+    for indexGhost in ghostPositions:
+      closetGhostDistance = float(min(closetGhostDistance, manhattanDistance(pacmanPostion,indexGhost)))
+
+    if closetGhostDistance < 6:
+      ghostFactor = -100000
+    else:
+      ghostFactor = 0
+
+    import random
+
+    return random.randint(0,80)/closetFoodDistance + random.randint(0,100)/closetCapsuleDistance + ghostFactor + 10*currentGameState.getScore()
     util.raiseNotDefined()
 
 # Abbreviation
