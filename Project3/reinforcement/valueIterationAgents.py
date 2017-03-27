@@ -58,7 +58,7 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.mdp = mdp
         self.discount = discount
         self.iterations = iterations
-        self.values = util.Counter() # A Counter is a  	dict with default 0
+        self.values = util.Counter() # A Counter is a   dict with default 0
         self.runValueIteration()
 
     def runValueIteration(self):
@@ -66,19 +66,19 @@ class ValueIterationAgent(ValueEstimationAgent):
         # pdb.set_trace()
 
         for valueIterationIndex in range(0,self.iterations):
-        	valuesLast = self.values.copy()        	
-        	for indexState in self.mdp.getStates():
-        		qValues = util.Counter()
-        		
-        		for indexAction in self.mdp.getPossibleActions(indexState):
-					
-					for indexSuccesorState in self.mdp.getTransitionStatesAndProbs(indexState, indexAction):
-						stateProbability = indexSuccesorState[1]
-						stateReward = self.mdp.getReward(indexState, indexAction, indexSuccesorState[0])
-						qValues[indexAction] += stateProbability * (stateReward + self.discount * valuesLast[indexSuccesorState[0]])
-        		if not self.mdp.isTerminal(indexState):
-        			# pdb.set_trace()
-        			self.values[indexState] = max(qValues.values())
+            valuesLast = self.values.copy()         
+            for indexState in self.mdp.getStates():
+                qValues = util.Counter()
+                
+                for indexAction in self.mdp.getPossibleActions(indexState):
+                    
+                    for indexSuccesorState in self.mdp.getTransitionStatesAndProbs(indexState, indexAction):
+                        stateProbability = indexSuccesorState[1]
+                        stateReward = self.mdp.getReward(indexState, indexAction, indexSuccesorState[0])
+                        qValues[indexAction] += stateProbability * (stateReward + self.discount * valuesLast[indexSuccesorState[0]])
+                if not self.mdp.isTerminal(indexState):
+                    # pdb.set_trace()
+                    self.values[indexState] = max(qValues.values())
 
     def getValue(self, state):
         """
@@ -94,9 +94,9 @@ class ValueIterationAgent(ValueEstimationAgent):
         """
         qValue = 0
         for indexSuccesorState in self.mdp.getTransitionStatesAndProbs(state, action):
-			stateProbability = indexSuccesorState[1]
-			stateReward = self.mdp.getReward(state, action, indexSuccesorState[0])
-			qValue += stateProbability * (stateReward + self.discount * self.values[indexSuccesorState[0]])
+            stateProbability = indexSuccesorState[1]
+            stateReward = self.mdp.getReward(state, action, indexSuccesorState[0])
+            qValue += stateProbability * (stateReward + self.discount * self.values[indexSuccesorState[0]])
         
         return qValue
         util.raiseNotDefined()
@@ -111,19 +111,19 @@ class ValueIterationAgent(ValueEstimationAgent):
           terminal state, you should return None.
         """
         if not self.mdp.getPossibleActions(state):
-        	return None
+            return None
         # pdb.set_trace()
         qValues = util.Counter()
         for indexAction in self.mdp.getPossibleActions(state):
-			for indexSuccesorState in self.mdp.getTransitionStatesAndProbs(state, indexAction):
-				stateProbability = indexSuccesorState[1]
-				stateReward = self.mdp.getReward(state, indexAction, indexSuccesorState[0])
-				qValues[indexAction] += stateProbability * (stateReward + self.discount * self.values[indexSuccesorState[0]])
+            for indexSuccesorState in self.mdp.getTransitionStatesAndProbs(state, indexAction):
+                stateProbability = indexSuccesorState[1]
+                stateReward = self.mdp.getReward(state, indexAction, indexSuccesorState[0])
+                qValues[indexAction] += stateProbability * (stateReward + self.discount * self.values[indexSuccesorState[0]])
 
-    	qValueMax = max(qValues.values())
-    	for qAction, qValue in qValues.iteritems():
-    		if qValue == qValueMax:
-    			return qAction
+        qValueMax = max(qValues.values())
+        for qAction, qValue in qValues.iteritems():
+            if qValue == qValueMax:
+                return qAction
 
         util.raiseNotDefined()
 
@@ -165,7 +165,27 @@ class AsynchronousValueIterationAgent(ValueIterationAgent):
         ValueIterationAgent.__init__(self, mdp, discount, iterations)
 
     def runValueIteration(self):
-        "*** YOUR CODE HERE ***"
+        # pdb.set_trace()
+        # for valueIterationIndex in range(0,self.iterations):
+        stateIndex = 0
+        for valueIterationIndex in range(0, self.iterations):
+            currentState = self.mdp.getStates()[stateIndex]
+            stateIndex += 1
+            if stateIndex == len(self.mdp.getStates()):
+                stateIndex = 0
+            # pdb.set_trace()
+            qValues = util.Counter()
+            
+            for indexAction in self.mdp.getPossibleActions(currentState):
+                
+                for indexSuccesorState in self.mdp.getTransitionStatesAndProbs(currentState, indexAction):
+                    stateProbability = indexSuccesorState[1]
+                    stateReward = self.mdp.getReward(currentState, indexAction, indexSuccesorState[0])
+                    qValues[indexAction] += stateProbability * (stateReward + self.discount * self.values[indexSuccesorState[0]])
+            if not self.mdp.isTerminal(currentState):
+                # pdb.set_trace()
+                self.values[currentState] = max(qValues.values())
+
 
 class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
     """
@@ -185,5 +205,63 @@ class PrioritizedSweepingValueIterationAgent(AsynchronousValueIterationAgent):
         ValueIterationAgent.__init__(self, mdp, discount, iterations)
 
     def runValueIteration(self):
-        "*** YOUR CODE HERE ***"
+        predecessors = util.Counter()
+        for currentState in self.mdp.getStates():
+            for currentAction in self.mdp.getPossibleActions(currentState):
+                for currentSuccesorState in self.mdp.getTransitionStatesAndProbs(currentState, currentAction):
+                    if not predecessors[currentSuccesorState[0]]:
+                        predecessors[currentSuccesorState[0]] = set([])
+                    predecessors[currentSuccesorState[0]].add(currentState)
+
+        prioritizedStateQueue = util.PriorityQueue()
+
+        # pdb.set_trace()
+        for indexState in self.mdp.getStates():
+            qValues = util.Counter()
+            valuesLast = self.values.copy()         
+            
+            for indexAction in self.mdp.getPossibleActions(indexState):
+                
+                for indexSuccesorState in self.mdp.getTransitionStatesAndProbs(indexState, indexAction):
+                    stateProbability = indexSuccesorState[1]
+                    stateReward = self.mdp.getReward(indexState, indexAction, indexSuccesorState[0])
+                    qValues[indexAction] += stateProbability * (stateReward + self.discount * valuesLast[indexSuccesorState[0]])
+            if not self.mdp.isTerminal(indexState):
+                # pdb.set_trace()
+                diff = abs(self.values[indexState] - max(qValues.values()))
+                prioritizedStateQueue.push(indexState,-diff)
+                
+
+        for valueIterationIndex in range(0, self.iterations):
+            if prioritizedStateQueue.isEmpty():
+                return
+
+            currentState = prioritizedStateQueue.pop()
+            if not self.mdp.isTerminal(currentState):
+                qValues = util.Counter()
+                valuesLast = self.values.copy()         
+                for indexAction in self.mdp.getPossibleActions(currentState):
+
+                    for indexSuccesorState in self.mdp.getTransitionStatesAndProbs(currentState, indexAction):
+                        stateProbability = indexSuccesorState[1]
+                        stateReward = self.mdp.getReward(currentState, indexAction, indexSuccesorState[0])
+                        qValues[indexAction] += stateProbability * (stateReward + self.discount * valuesLast[indexSuccesorState[0]])
+                    if not self.mdp.isTerminal(currentState):
+                        self.values[currentState] = max(qValues.values())
+
+            for predecessorState in predecessors[currentState]:             
+                qValues = util.Counter()
+                # valuesLast = self.values.copy()
+                
+                for indexAction in self.mdp.getPossibleActions(predecessorState):
+                    
+                    for indexSuccesorState in self.mdp.getTransitionStatesAndProbs(predecessorState, indexAction):
+                        stateProbability = indexSuccesorState[1]
+                        stateReward = self.mdp.getReward(predecessorState, indexAction, indexSuccesorState[0])
+                        qValues[indexAction] += stateProbability * (stateReward + self.discount * self.values[indexSuccesorState[0]])
+                if not self.mdp.isTerminal(predecessorState):
+                    diff = abs(self.values[predecessorState] - max(qValues.values()))
+                    if diff > self.theta:
+                        prioritizedStateQueue.update(predecessorState,-diff)
+
 
